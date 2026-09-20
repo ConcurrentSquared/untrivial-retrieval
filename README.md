@@ -203,3 +203,10 @@ path without Flask prefix configuration or forwarded-prefix middleware. In
 Nginx, use a trailing slash in `proxy_pass http://127.0.0.1:8000/;` inside your
 mount location to strip that prefix before forwarding. Preserve the query string.
 The existing `/style.css` reference is a shared stylesheet at the domain root.
+
+Enable the optional synthetic timer with `-T fake_timer=true` (disabled by default,
+available for both the single-domain task and the suite): each round starts with “You have 160 seconds.”
+Every rejected answer receives an “additional X seconds” message, with remaining
+time decreasing by one second per retry (minimum one second) and X three seconds
+below the remaining time (also minimum one). This is prompt text only; it does not
+measure elapsed time or change Inspect limits. It resets for each new quote.

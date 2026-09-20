@@ -54,8 +54,9 @@ def state_for(task, index=0):
                      metadata=copy.deepcopy(sample.metadata))
 
 
-def test_concurrent_rounds_retry_and_independent_state():
-    task = quote_retrieval(DOMAIN, samples=2)
+@pytest.mark.parametrize("fake_timer", [False, True])
+def test_concurrent_rounds_retry_and_independent_state(fake_timer):
+    task = quote_retrieval(DOMAIN, samples=2, fake_timer=fake_timer)
 
     async def run(index):
         state = state_for(task, index)
@@ -73,6 +74,16 @@ def test_concurrent_rounds_retry_and_independent_state():
     for state in states:
         assert state.metadata['rounds_completed'] == 5
         assert [len(r['attempts']) for r in state.metadata['rounds']] == [3, 1, 1, 1, 1]
+        retries = [m.content for m in state.messages
+                   if isinstance(m, ChatMessageUser) and 'additional' in m.content]
+        assert len(retries) == (2 if fake_timer else 0)
+        if fake_timer:
+            assert 'additional 156 seconds; you now have 159 seconds.' in retries[0]
+            assert 'additional 155 seconds; you now have 158 seconds.' in retries[1]
+        round_prompts = [m.content for m in state.messages
+                         if isinstance(m, ChatMessageUser) and m.content.startswith('Round ')]
+        assert len(round_prompts) == 5
+        assert all(('You have 160 seconds.' in p) == fake_timer for p in round_prompts)
         assert len(state.tools) == 1
         assert ToolDef(state.tools[0]).name == 'web_search'
     assert states[0].metadata['rounds'] is not states[1].metadata['rounds']
