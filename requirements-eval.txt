@@ -1,0 +1,2 @@
+inspect-ai @ git+https://github.com/ConcurrentSquared/inspect_ai.git
+openai>=2.0

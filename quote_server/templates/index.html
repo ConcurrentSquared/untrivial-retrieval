@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browse political quotes</title>
+</head>
+<body>
+  <main>
+    <h1>Browse political quotes</h1>
+    <p>{{ quote_count }} sourced quotes from {{ authors | length }} political figures.</p>
+    <p>Choose an author for up to five quotes, or expand their years to see
+      every quote from a particular year. Results are plain text with sources,
+      licensing, and deterministic quote bits.</p>
+    {% if dataset_missing %}
+    <p>Dataset missing. Run <code>python import_wikiquote.py</code> and restart the server.</p>
+    {% endif %}
+    <nav aria-label="Browse quotes">
+      <a href="#authors">Browse by author</a> · <a href="#years">Search by year</a>
+    </nav>
+
+    <h2 id="years">Search by year</h2>
+    <p>Find up to five quotes across all authors for a year.</p>
+    <form action="/" method="get">
+      <label for="year-only">Year</label>
+      <input id="year-only" name="year" type="number" min="1" max="9999" list="years-list" required>
+      <button type="submit">Find quotes by year</button>
+    </form>
+    <datalist id="years-list">
+      {% for year in years %}<option value="{{ year }}"></option>{% endfor %}
+    </datalist>
+
+    <h2 id="authors">Authors</h2>
+    <ul>
+      {% for name, author_years in authors %}
+      <li>
+        <a href="{{ search_link(name=name) }}">{{ name }}</a>
+        <details>
+          <summary>All quotes by year ({{ author_years.values() | sum }} total)</summary>
+          <ul>
+            {% for year, count in author_years.items() | sort %}
+            <li><a href="{{ search_link(name=name, year=year) }}">{{ year }} — {{ count }} quote{{ '' if count == 1 else 's' }}</a></li>
+            {% endfor %}
+          </ul>
+        </details>
+      </li>
+      {% endfor %}
+    </ul>
+    <p>The first five are ordered by earliest year, then author and Wikiquote page order.
+      Years may refer to publication or reporting dates; each result includes the evidence.</p>
+  </main>
+</body>
+</html>

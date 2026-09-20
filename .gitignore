@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Reproducible Wikiquote API cache (the extracted snapshot is tracked).
+quote_server/data/cache/
+quote_server/data/*.tmp
+quote_server/data/quotes.sample.json
+
+logs/
+# Local authoritative quote snapshot.
+quote_server/data/quotes.json
