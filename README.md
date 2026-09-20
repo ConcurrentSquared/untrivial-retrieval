@@ -7,10 +7,13 @@ There is no database, JavaScript, styling, or network access during requests.
 
 ## Run
 
+Run all commands below from the repository root. The server and evaluation have
+independent requirements and virtual environments in `quote_server/` and `eval/`.
+
 ```sh
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/flask --app quote_server.app run --host 127.0.0.1 --port 5000
+python3 -m venv quote_server/.venv
+quote_server/.venv/bin/pip install -r quote_server/requirements.txt
+quote_server/.venv/bin/flask --app quote_server.app run --host 127.0.0.1 --port 5000
 ```
 
 The local `quote_server/data/quotes.json` is the authoritative dataset and is ignored by Git.
@@ -66,13 +69,13 @@ bits. The exact stored quote text is hashed, without normalization.
 
 ```sh
 # Resume from cached API responses, downloading only missing pages:
-.venv/bin/python -m quote_server.import_wikiquote
+quote_server/.venv/bin/python -m quote_server.import_wikiquote
 
 # Download fresh revisions of all 100 pages:
-.venv/bin/python -m quote_server.import_wikiquote --refresh
+quote_server/.venv/bin/python -m quote_server.import_wikiquote --refresh
 
 # Small importer check, saved separately as quote_server/data/quotes.sample.json:
-.venv/bin/python -m quote_server.import_wikiquote --limit 3
+quote_server/.venv/bin/python -m quote_server.import_wikiquote --limit 3
 ```
 
 `quote_server/data/authors.txt` is the editable roster of exactly 100 historical and modern
@@ -119,8 +122,8 @@ all quoted words as freely licensed. See [Wikiquote's copyright policy](https://
 ## Tests
 
 ```sh
-.venv/bin/pip install -r requirements-dev.txt
-.venv/bin/python -m pytest -q
+quote_server/.venv/bin/pip install -r quote_server/requirements-dev.txt
+quote_server/.venv/bin/python -m pytest quote_server/tests -q
 ```
 
 Tests use synthetic fixtures and the local snapshot, and need no network.
@@ -133,9 +136,10 @@ and extraction of citations, dates, and excluded sections.
 Install the [ConcurrentSquared Inspect fork](https://github.com/ConcurrentSquared/inspect_ai):
 
 ```sh
-.venv/bin/pip install -r requirements-eval.txt
+python3 -m venv eval/.venv
+eval/.venv/bin/pip install -r eval/requirements.txt
 export OPENAI_API_KEY=... # Your API key
-.venv/bin/inspect eval evals/quote_retrieval.py@quote_retrieval \
+eval/.venv/bin/inspect eval eval/quote_retrieval.py@quote_retrieval \
   --model openai/gpt-5 -M responses_api=true \
   -T domain=quotes.example.com -T samples=10 --max-samples 4
 ```
@@ -179,7 +183,7 @@ receives an accepted answer before its limit.
 For a set of tasks, one per domain:
 
 ```sh
-.venv/bin/inspect eval evals/quote_retrieval.py@quote_retrieval_suite \
+eval/.venv/bin/inspect eval eval/quote_retrieval.py@quote_retrieval_suite \
   --model openai/gpt-5 -M responses_api=true \
   -T domains=quotes.example.com,quotes.other.example -T samples=10 --max-samples 4
 ```
@@ -187,6 +191,15 @@ For a set of tasks, one per domain:
 No live paid model calls are needed for the offline tests:
 
 ```sh
-.venv/bin/pip install -r requirements-dev.txt
-.venv/bin/python -m pytest -q
+eval/.venv/bin/pip install -r eval/requirements-dev.txt
+eval/.venv/bin/python -m pytest eval/tests -q
 ```
+
+## Hosting under a subdirectory
+
+Search links use query-only relative URLs (`?year=1923&name=...`), and the year
+form submits to the current page. They work at `/`, `/quotes/`, or another mount
+path without Flask prefix configuration or forwarded-prefix middleware. In
+Nginx, use a trailing slash in `proxy_pass http://127.0.0.1:8000/;` inside your
+mount location to strip that prefix before forwarding. Preserve the query string.
+The existing `/style.css` reference is a shared stylesheet at the domain root.

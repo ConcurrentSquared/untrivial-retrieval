@@ -4,7 +4,7 @@ from pathlib import Path
 
 from quote_server.app import create_app
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_snapshot_covers_entire_roster():

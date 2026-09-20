@@ -47,7 +47,7 @@ def test_only_get(client, method):
 
 
 def test_help_no_unfiltered_dump_and_stable_bits(client):
-    assert "Browse political quotes" in client.get('/').text
+    assert 'aria-label="Browse quotes"' in client.get('/').text
     assert "Quote John Maynard Keynes 0" not in client.get('/').text
     first = client.get('/?year=1923')
     second = client.get('/?year=1923')
@@ -66,18 +66,18 @@ def test_author_links_and_year_form(client):
     forms = soup.find_all('form')
     assert len(forms) == 1
     form = forms[0]
-    assert form['method'] == 'get' and form['action'] == '/'
+    assert form['method'] == 'get' and form['action'] == ''
     assert [field['name'] for field in form.select('input[name]')] == ['year']
     assert form.select_one('input')['required'] == ''
     assert client.get('/?year=1923').text.count('\nAuthor: ') == 5
-    links = [a['href'] for a in soup.select('a[href^="/?"]')]
-    assert '/?name=John+Maynard+Keynes' in links
-    assert '/?year=1923&name=John+Maynard+Keynes' in links
+    links = [a['href'] for a in soup.select('a[href^="?"]')]
+    assert '?name=John+Maynard+Keynes' in links
+    assert '?year=1923&name=John+Maynard+Keynes' in links
     for link in links:
         keys = [key for key, _ in parse_qsl(urlsplit(link).query)]
         assert 'name' in keys  # No standalone per-year list.
         assert keys == sorted(keys, reverse=True)
-        result = client.get(link)
+        result = client.get("/" + link)
         assert result.status_code == 200
         assert result.content_type == 'text/plain; charset=utf-8'
         assert '\nAuthor: ' in result.text
@@ -106,3 +106,21 @@ def test_bits_depend_on_quote_text():
 def test_missing_dataset(tmp_path):
     client = create_app(tmp_path / "absent.json").test_client()
     assert client.get('/?year=1923').status_code == 503
+
+
+@pytest.mark.parametrize("prefix", ["/", "/quotes/", "/tools/history/"])
+def test_navigation_stays_under_mount_path(client, prefix):
+    from bs4 import BeautifulSoup
+    from urllib.parse import urljoin, urlsplit
+
+    base = "https://example.com" + prefix
+    soup = BeautifulSoup(client.get('/').text, 'html.parser')
+    for anchor in soup.select('a[href]'):
+        resolved = urlsplit(urljoin(base, anchor['href']))
+        assert resolved.path == prefix
+        if resolved.query:
+            # Nginx strips the mount prefix before forwarding the unchanged query.
+            assert client.get('/?' + resolved.query).status_code == 200
+    action = urlsplit(urljoin(base, soup.form['action']))
+    assert action.path == prefix
+    assert client.get('/?year=1923').status_code == 200

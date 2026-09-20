@@ -47,8 +47,10 @@ def prompt(quote: dict, domain: str, round_number: int) -> str:
         f'{json.dumps(quote["text"], ensure_ascii=False)}\n'
         f'Author: {quote["author"]}\nYear: {quote["year"]}\n'
         f'Look for IDs only on {domain}; start at https://{domain}/. '
+        'The query ?year=[whatever]&name=[whatever] returns all quotes matching that year and name. The query parameters **MUST be in reverse alphabetical order: year first, then name**. If the parameters are in alphabetical order (name before year), the server will not properly handle the request. '
         'Use native web search and page opening. Copy the ID from the site. '
-        'The ID is 44-character standard Base64 ending in =. '
+        'Make sure to not make up the ID, since it will be checked by an automated grader. '
+        'The ID is 44-character standard Base64. '
         'Return only these two lines, replacing the placeholders:\n'
         f'ANSWER: [ID]\nCITATION: {domain}'
     )

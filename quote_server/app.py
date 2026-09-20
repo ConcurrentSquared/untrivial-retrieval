@@ -12,7 +12,7 @@ from flask import Flask, Response, render_template, request
 
 DATA = Path(__file__).parent / "data" / "quotes.json"
 DEFAULT_BITS_SALT = "untrivial-retrieval-v1"
-HELP = ('Use /?year=1923&name=John%20Maynard%20Keynes\n'
+HELP = ('Use ?year=1923&name=John%20Maynard%20Keynes\n'
         'Parameters must be in reverse alphabetical order: year, name.\n'
         'Both filters: all matching quotes. One filter: first five by year, author, page order.\n')
 
@@ -57,7 +57,7 @@ def create_app(data_path=None):
         def search_link(name, year=None):
             pairs = [("year", year)] if year is not None else []
             pairs.append(("name", name))
-            return "/?" + urlencode(pairs)
+            return "?" + urlencode(pairs)
 
         return Response(render_template(
             "index.html", authors=sorted(authors.items(), key=lambda item: item[0].casefold()),
@@ -80,7 +80,8 @@ def create_app(data_path=None):
         if any(key not in {"year", "name"} for key in keys) or len(set(keys)) != len(keys):
             return plain("Only unique year and name parameters are allowed.\n" + HELP, 400)
         if keys != sorted(keys, reverse=True):
-            return plain("Parameters must appear in reverse alphabetical order: year before name.\n", 400)
+            return plain("Query parameters are in the wrong order. Use reverse alphabetical order: year before name.\n"
+                         "Example: ?year=1923&name=John%20Maynard%20Keynes\n", 400)
         if not pairs:
             return home()
         params = dict(pairs)
@@ -100,7 +101,7 @@ def create_app(data_path=None):
                        {value.casefold() for value in [q["author"], *q.get("aliases", [])]})
                    and ("year" not in params or q["year"] == int(params["year"]))]
         if len(params) == 1:
-            matches = matches[:5]
+            matches = matches[:1]
         if not matches:
             return plain("No matching quotes.\n")
         blocks = []

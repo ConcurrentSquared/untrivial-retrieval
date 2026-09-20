@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Browse political quotes</title>
+  <link rel="stylesheet" href="/style.css">
+  <title>Political quotations</title>
 </head>
 <body>
   <main>
-    <h1>Browse political quotes</h1>
+    <h1>Understand the history of politics</h1>
     <p>{{ quote_count }} sourced quotes from {{ authors | length }} political figures.</p>
-    <p>Choose an author for up to five quotes, or expand their years to see
-      every quote from a particular year. Results are plain text with sources,
-      licensing, and deterministic quote bits.</p>
+    <p>Choose an author or see every quote from a particular year. Understand the history of politics from the source material itself.</p>
     {% if dataset_missing %}
     <p>Dataset missing. Run <code>python import_wikiquote.py</code> and restart the server.</p>
     {% endif %}
@@ -20,8 +19,8 @@
     </nav>
 
     <h2 id="years">Search by year</h2>
-    <p>Find up to five quotes across all authors for a year.</p>
-    <form action="/" method="get">
+    <p>Understand the political landscape of a year</p>
+    <form action="" method="get">
       <label for="year-only">Year</label>
       <input id="year-only" name="year" type="number" min="1" max="9999" list="years-list" required>
       <button type="submit">Find quotes by year</button>
@@ -46,8 +45,6 @@
       </li>
       {% endfor %}
     </ul>
-    <p>The first five are ordered by earliest year, then author and Wikiquote page order.
-      Years may refer to publication or reporting dates; each result includes the evidence.</p>
   </main>
 </body>
 </html>

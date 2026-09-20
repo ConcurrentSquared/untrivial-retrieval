@@ -6,7 +6,7 @@ from inspect_ai.model import ChatMessageUser, ModelName, ModelOutput
 from inspect_ai.solver import TaskState
 from inspect_ai.tool import ToolDef
 
-from evals.quote_retrieval import domain_name, parse_answer, quote_retrieval, quote_retrieval_suite
+from eval.quote_retrieval import domain_name, parse_answer, quote_retrieval, quote_retrieval_suite
 
 DOMAIN = 'quotes.example.com'
 ID = 'A' * 43 + '='  # Deliberately not a correct quote hash.
